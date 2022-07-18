@@ -85,12 +85,9 @@ class AssetTransfer extends Contract {
     return JSON.stringify(newOrder);
   }
 
-  async GetOrderDetails(ctx, id) {
+  async OrderExists(ctx, id) {
     const orderJSON = await ctx.stub.getState(id);
-    if (!orderJSON || orderJSON.length === 0) {
-      throw new Error(`The order with Order ID: ${id} does not exist`);
-    }
-    return orderJSON.toString();
+    return orderJSON && orderJSON.length > 0;
   }
 
   async UpdateOrderStatus(ctx, id, status) {
@@ -161,9 +158,19 @@ class AssetTransfer extends Contract {
     return ctx.stub.putState(id, Buffer.from(JSON.stringify(order)));
   }
 
-  async OrderExists(ctx, id) {
+  async GetOrderDetails(ctx, id) {
     const orderJSON = await ctx.stub.getState(id);
-    return orderJSON && orderJSON.length > 0;
+    if (!orderJSON || orderJSON.length === 0) {
+      throw new Error(`The order with Order ID: ${id} does not exist`);
+    }
+    return orderJSON.toString();
+  }
+
+  async GetChainOfCustody(ctx, id) {
+    const orderStringJSON = await this.GetOrderDetails(ctx, id);
+    const orderOBJ = JSON.parse(orderStringJSON);
+    let copyChainOfCustody = orderOBJ.ChainOfCustody;
+    return JSON.stringify(copyChainOfCustody);
   }
 
   async GetAllOrders(ctx) {
